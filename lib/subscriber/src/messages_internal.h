@@ -28,18 +28,18 @@ enum MessageType : std::uint8_t
 
 struct POD_GreetingMessage
 {
-  char client_id[client_id_maxlen() + 1];
+  char client_id[client_id_maxlen()];
 };
 
 struct POD_SubscribeRequest
 {
-  char topic[topic_maxlen() + 1];
+  char topic[topic_maxlen()];
   bool store_forward : 8;
 } __attribute__((__packed__));
 
 struct POD_UnsubscribeRequest
 {
-  char topic[topic_maxlen() + 1];
+  char topic[topic_maxlen()];
 };
 
 }  // namespace subscriber::messages::internal
