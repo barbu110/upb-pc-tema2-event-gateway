@@ -2,6 +2,9 @@
 
 #include "messages_internal.h"
 
+#include <cstring>
+#include <algorithm>
+
 namespace subscriber::messages
 {
 
@@ -18,13 +21,17 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
   using internal::POD_SubscribeRequest;
   using internal::POD_UnsubscribeRequest;
 
-  auto payload = static_cast<const std::uint8_t *>(buf.data()) + sizeof(MessageType);
+  auto payload = static_cast<const std::uint8_t *>(buf.data());
 
   switch (*reinterpret_cast<const MessageType *>(buf.data()))
   {
   case MessageType::GREETING: {
-    auto pod = reinterpret_cast<const POD_GreetingMessage *>(payload);
-    return GreetingMessage{std::string{pod->client_id}};
+    const POD_GreetingMessage *pod = reinterpret_cast<const POD_GreetingMessage *>(payload + 1);
+    
+    char client_id[sizeof(pod->client_id) + 1]{};
+    memcpy(client_id, pod->client_id, std::min<size_t>(buf.size() - 1, sizeof(client_id)));
+
+    return GreetingMessage{std::string{client_id}};
   }
   case MessageType::SUBSCRIBE: {
     auto pod = reinterpret_cast<const POD_SubscribeRequest *>(payload);

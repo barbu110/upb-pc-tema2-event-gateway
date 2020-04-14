@@ -32,36 +32,28 @@ public:
 private:
   void on_conn(microloop::net::TcpServer::PeerConnection &conn)
   {
-    std::cout << "Client connected from (" << conn.str() << ")\n";
-
-    if (clients_.find(conn.fd) == clients_.end())
+    if (clients_.find(conn.fd()) == clients_.end())
     {
       /* Client ID is left to be completed upon incoming data */
-      clients_.emplace(conn.fd, Client{conn});
+      clients_.emplace(conn.fd(), Client{conn});
     }
   }
 
   void on_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf)
   {
-    if (buf.empty())
-    {
-      std::cout << "Closing connection (" << conn.str() << ")\n";
-
-      clients_.erase(conn.fd);
-      conn.close();
-
-      return;
-    }
-
-    std::cout << "Message from connection (" << conn.str() << ")\n";
-
-    auto client_it = clients_.find(conn.fd);
+    auto client_it = clients_.find(conn.fd());
     if (client_it == clients_.end())
     {
       return;
     }
 
     auto &[fd, client] = *client_it;
+
+    if (buf.empty())
+    {
+      on_disconnect(client);
+      return;
+    }
 
     auto message = subscriber::messages::from_buffer(buf);
     std::visit(
@@ -84,11 +76,24 @@ private:
         message);
   }
 
+  void on_disconnect(Client &client)
+  {
+    std::cout << "Client \"" << client.client_id << "\" disconnected.\n";
+
+    auto fd = client.raw_conn.fd();
+
+    server_.close_conn(client.raw_conn);
+    clients_.erase(fd);
+  }
+
   void on_client_greeting(Client &client, const subscriber::messages::GreetingMessage &msg)
   {
-    std::cout << "Greeting message from client (" << client.raw_conn.str() << ")\n";
-    std::cout << "Client (" << client.raw_conn.str() << " is identified by " << msg.client_id
-              << "\n";
+    using std::cout;
+
+    auto peer_address = client.raw_conn.str(false);
+    cout << "Client \"" << msg.client_id << "\" connected from " << peer_address << ".\n";
+
+    client.client_id = msg.client_id;
   }
 
   void on_subscribe(Client &client, const subscriber::messages::SubscribeRequest &msg)

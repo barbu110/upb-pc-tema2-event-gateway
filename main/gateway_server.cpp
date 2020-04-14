@@ -8,7 +8,5 @@ int main()
   gateway::Server srv{8900};
 
   while (MICROLOOP_TICK())
-  {
-    std::cout << "Tick...\n";
-  }
+  {}
 }
