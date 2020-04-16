@@ -1,11 +1,11 @@
 cc_library(
-  name = "gateway",
-  srcs = glob(["src/**/*.cpp"]),
+  name = "commons",
+  srcs = glob(["src/**/*.cpp", "src/**/*.h"]),
   hdrs = glob(["include/**/*.h"]),
   includes = ["include"],
   visibility = ["//visibility:public"],
   deps = [
-    "//lib/commons",
     "@micro//lib/microloop:microloop",
   ],
 )
+

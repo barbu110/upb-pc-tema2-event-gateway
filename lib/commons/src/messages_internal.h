@@ -1,6 +1,6 @@
 #pragma once
 
-namespace subscriber::messages::internal
+namespace commons::subscriber_messages::internal
 {
 
 static constexpr std::size_t client_id_maxlen()
@@ -42,4 +42,4 @@ struct POD_UnsubscribeRequest
   char topic[topic_maxlen()];
 };
 
-}  // namespace subscriber::messages::internal
+}  // namespace commons::subscriber_messages::internal
