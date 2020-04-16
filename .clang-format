@@ -41,3 +41,6 @@ SpaceBeforeInheritanceColon: true
 SpaceBeforeRangeBasedForLoopColon: true
 SpacesInContainerLiterals: false
 MaxEmptyLinesToKeep: 2
+BinPackParameters: false
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
