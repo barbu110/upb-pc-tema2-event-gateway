@@ -8,4 +8,3 @@ cc_library(
     "@micro//lib/microloop:microloop",
   ],
 )
-
