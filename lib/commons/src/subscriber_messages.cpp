@@ -2,8 +2,8 @@
 
 #include "messages_internal.h"
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 
 namespace commons::subscriber_messages
 {
@@ -48,4 +48,4 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
   }
 }
 
-}  // namespace subscriber::messages
+}  // namespace commons::subscriber_messages

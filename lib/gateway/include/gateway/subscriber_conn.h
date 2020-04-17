@@ -14,4 +14,4 @@ struct SubscriberConnection
   std::string client_id;
 };
 
-}
+}  // namespace gateway

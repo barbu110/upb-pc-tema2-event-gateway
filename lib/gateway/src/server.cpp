@@ -67,16 +67,12 @@ void Server::on_client_greeting(SubscriberConnection &subscriber,
 
 void Server::on_subscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::SubscribeRequest &msg)
-{
-
-}
+{}
 
 /* Callback to be invoked when a client sends an unsubscribe request. */
 void Server::on_unsubscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::UnsubscribeRequest &msg)
-{
-
-}
+{}
 
 
 }  // namespace gateway

@@ -5,8 +5,8 @@
 #include <cstdint>
 #include <string>
 #include <variant>
- 
-namespace commons::subscriber_messages 
+
+namespace commons::subscriber_messages
 {
 
 /**
@@ -65,5 +65,4 @@ bool is_valid_message_type(uint8_t value);
  */
 SubscriberMessage from_buffer(const microloop::Buffer &buf);
 
-}  // namespace subscriber::messages
-
+}  // namespace commons::subscriber_messages
