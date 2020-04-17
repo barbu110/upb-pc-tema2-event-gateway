@@ -15,13 +15,13 @@
 namespace gateway
 {
 
-class Server
+class Gateway
 {
 public:
-  Server(int port) : server_{port}
+  Gateway(int port) : tcp_server_{port}, udp_server_{port}
   {
-    server_.set_connection_callback(&Server::on_conn, this);
-    server_.set_data_callback(&Server::on_data, this);
+    tcp_server_.set_connection_callback(&Server::on_conn, this);
+    tcp_server_.set_data_callback(&Server::on_data, this);
   }
 
 private:
@@ -29,7 +29,7 @@ private:
   void on_conn(microloop::net::TcpServer::PeerConnection &conn);
 
   /* Callback to be invoked when new data arrives on the TCP endpoint. */
-  void on_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf);
+  void on_tcp_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf);
 
   /* Callback to be invoked when a client disconnects. */
   void on_disconnect(SubscriberConnection &client);
@@ -47,7 +47,8 @@ private:
       const commons::subscriber_messages::UnsubscribeRequest &msg);
 
 private:
-  microloop::net::TcpServer server_;
+  microloop::net::TcpServer tcp_server_;
+  net_utils::UdpServer udp_server_;
   std::map<std::int32_t, SubscriberConnection> clients_;
 };
 

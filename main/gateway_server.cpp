@@ -1,11 +1,11 @@
-#include "gateway/server.h"
+#include "gateway/gatewway.h"
 #include "microloop/event_loop.h"
 
 #include <iostream>
 
 int main()
 {
-  gateway::Server srv{8900};
+  gateway::Gateway gateway{8900};
 
   while (MICROLOOP_TICK())
   {}

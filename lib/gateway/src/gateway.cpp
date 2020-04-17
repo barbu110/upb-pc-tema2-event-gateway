@@ -1,9 +1,9 @@
-#include "gateway/server.h"
+#include "gateway/gateway.h"
 
 namespace gateway
 {
 
-void Server::on_conn(microloop::net::TcpServer::PeerConnection &conn)
+void Gateway::on_conn(microloop::net::TcpServer::PeerConnection &conn)
 {
   if (clients_.find(conn.fd()) == clients_.end())
   {
@@ -12,7 +12,7 @@ void Server::on_conn(microloop::net::TcpServer::PeerConnection &conn)
   }
 }
 
-void Server::on_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf)
+void Gateway::on_tcp_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf)
 {
   auto client_it = clients_.find(conn.fd());
   auto &[fd, client] = *client_it;
@@ -44,17 +44,17 @@ void Server::on_data(microloop::net::TcpServer::PeerConnection &conn, const micr
       message);
 }
 
-void Server::on_disconnect(SubscriberConnection &subscriber)
+void Gateway::on_disconnect(SubscriberConnection &subscriber)
 {
   std::cout << "Client \"" << subscriber.client_id << "\" disconnected.\n";
 
   auto fd = subscriber.raw_conn.fd();
 
-  server_.close_conn(subscriber.raw_conn);
+  tcp_server_.close_conn(subscriber.raw_conn);
   clients_.erase(fd);
 }
 
-void Server::on_client_greeting(SubscriberConnection &subscriber,
+void Gateway::on_client_greeting(SubscriberConnection &subscriber,
     const commons::subscriber_messages::GreetingMessage &msg)
 {
   using std::cout;
@@ -65,14 +65,13 @@ void Server::on_client_greeting(SubscriberConnection &subscriber,
   subscriber.client_id = msg.client_id;
 }
 
-void Server::on_subscribe(SubscriberConnection &subscriber,
+void Gateway::on_subscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::SubscribeRequest &msg)
 {}
 
 /* Callback to be invoked when a client sends an unsubscribe request. */
-void Server::on_unsubscribe(SubscriberConnection &subscriber,
+void Gateway::on_unsubscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::UnsubscribeRequest &msg)
 {}
-
 
 }  // namespace gateway
