@@ -4,7 +4,6 @@
 #include "microloop/event_source.h"
 #include "microloop/kernel_exception.h"
 
-#include <atomic>
 #include <string>
 #include <sys/socket.h>
 #include <tuple>
