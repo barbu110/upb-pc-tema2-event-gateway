@@ -1,16 +1,23 @@
 #pragma once
 
-namespace commons::subscriber_messages::internal
+namespace commons::internal
 {
-
-static constexpr std::size_t client_id_maxlen()
-{
-  return 10;
-}
 
 static constexpr std::size_t topic_maxlen()
 {
   return 50;
+}
+
+}  // namespace commons::internal
+
+namespace commons::subscriber_messages::internal
+{
+
+using namespace commons::internal;
+
+static constexpr std::size_t client_id_maxlen()
+{
+  return 10;
 }
 
 static constexpr std::size_t msg_payload_size()

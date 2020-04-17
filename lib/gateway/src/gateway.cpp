@@ -12,7 +12,8 @@ void Gateway::on_conn(microloop::net::TcpServer::PeerConnection &conn)
   }
 }
 
-void Gateway::on_tcp_data(microloop::net::TcpServer::PeerConnection &conn, const microloop::Buffer &buf)
+void Gateway::on_tcp_data(microloop::net::TcpServer::PeerConnection &conn,
+    const microloop::Buffer &buf)
 {
   auto client_it = clients_.find(conn.fd());
   auto &[fd, client] = *client_it;

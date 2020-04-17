@@ -56,7 +56,7 @@ class ReceiveFrom :
     public microloop::TypeHelper<AddressWrapper, microloop::Buffer>
 {
 public:
-  static constexpr std::size_t DEFAULT_MAX_READ_SIZE = 1500;
+  static constexpr std::size_t DEFAULT_MAX_READ_SIZE = 2048;
 
   ReceiveFrom(std::uint32_t sock,
       Callback &&callback,
