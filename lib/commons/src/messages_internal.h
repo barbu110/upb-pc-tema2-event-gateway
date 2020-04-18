@@ -25,14 +25,6 @@ static constexpr std::size_t msg_payload_size()
   return 1500;
 }
 
-enum MessageType : std::uint8_t
-{
-  GREETING,
-  SUBSCRIBE,
-  UNSUBSCRIBE,
-  _COUNT,  // Must always be the last enumerator
-};
-
 struct POD_GreetingMessage
 {
   char client_id[client_id_maxlen()];

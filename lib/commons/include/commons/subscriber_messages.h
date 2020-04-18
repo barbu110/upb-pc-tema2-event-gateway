@@ -9,6 +9,15 @@
 namespace commons::subscriber_messages
 {
 
+enum MessageType : std::uint8_t
+{
+  GREETING,
+  SUBSCRIBE,
+  UNSUBSCRIBE,
+  _COUNT,  // Must always be the last enumerator
+};
+
+
 /**
  * \brief Message to be retrieved from subscriber clients upon connection initiation. This message
  * is similar to a handshake, including client identification data.

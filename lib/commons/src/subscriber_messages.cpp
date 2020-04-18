@@ -10,13 +10,11 @@ namespace commons::subscriber_messages
 
 bool is_valid_message_type(uint8_t value)
 {
-  using internal::MessageType;
   return value < MessageType::_COUNT;
 }
 
 SubscriberMessage from_buffer(const microloop::Buffer &buf)
 {
-  using internal::MessageType;
   using internal::POD_GreetingMessage;
   using internal::POD_SubscribeRequest;
   using internal::POD_UnsubscribeRequest;
