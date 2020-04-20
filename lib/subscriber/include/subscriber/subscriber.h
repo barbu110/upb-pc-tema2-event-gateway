@@ -3,6 +3,7 @@
 #include "commons/subscriber_messages.h"
 #include "net_utils/keyboard_input.h"
 #include "net_utils/tcp_client.h"
+#include "absl/strings/str_split.h"
 
 #include <cstdint>
 #include <iostream>
@@ -61,20 +62,81 @@ private:
   }
 
   void on_server_data(const microloop::Buffer &buf)
-  {}
+  {
+    if (buf.empty())
+    {
+      kill(getpid(), SIGINT);
+    }
+  }
 
   void on_keyboard_input(const std::string &input)
   {
+    if (input.empty())
+    {
+      return;
+    }
+
     if (input == "exit" || input == "q")
     {
       kill(getpid(), SIGINT);
+    }
+
+    std::vector<std::string_view> parts = absl::StrSplit(input, ' ');
+    auto command = parts.front();
+
+    if (command == "subscribe")
+    {
+      static constexpr std::string_view usage = "subscribe topic store_forward";
+      if (parts.size() != 3)
+      {
+        std::cerr << "usage: " << usage << "\n";
+        return;
+      }
+
+      auto topic = parts[1];
+      bool store_forward;
+
+      if (parts[2] == "true" || parts[2] == "TRUE" || parts[2] == "1")
+      {
+        store_forward = true;
+      }
+      else if (parts[2] == "false" || parts[2] == "FALSE" || parts[2] == "0")
+      {
+        store_forward = false;
+      }
+      else
+      {
+        std::cerr << "error: invalid value for store_forward\n";
+        return;
+      }
+
+      commons::subscriber_messages::SubscribeRequest request{std::string{topic}, store_forward};
+      conn_->send(request.serialize());
+    }
+    else if (command == "unsubscribe")
+    {
+      static constexpr std::string_view usage = "unsubscribe topic";
+      if (parts.size() != 2)
+      {
+        std::cerr << "usage: " << usage << "\n";
+        return;
+      }
+
+      auto topic = parts[1];
+
+      commons::subscriber_messages::UnsubscribeRequest request{std::string{topic}};
+      conn_->send(request.serialize());
+    }
+    else
+    {
+      std::cerr << "unknown command: " << command << "\n";
     }
   }
 
 private:
   std::string client_id_;
   net_utils::TcpClient client_;
-  net_utils::AddressWrapper *conn_;
+  net_utils::AddressWrapper *conn_;  // Not managed by this class.
 };
 
 }  // namespace subscriber
