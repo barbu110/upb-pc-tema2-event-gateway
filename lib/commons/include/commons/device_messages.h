@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <limits>
 #include <sstream>
@@ -30,15 +31,29 @@ struct DeviceMessage<PayloadType::INT>
 {
   std::string topic;
 
-  /* The integral value stored in this message. */
-  std::int64_t value;
+  /* Sign byte for the value. 0 is positive, 1 is negative. */
+  std::uint8_t sign;
+
+  /* The absolute integral value stored in this message. */
+  std::uint32_t value;
+
+  std::string value_repr() const
+  {
+    static constexpr std::size_t max_digits = std::numeric_limits<std::uint32_t>::digits10;
+    char buf[max_digits + 1 + 1]{};
+
+    std::snprintf(buf, sizeof(buf), "%s%ld", sign ? "-" : "", value);
+    return buf;
+  }
 
   std::string str() const
   {
     std::stringstream ss;
-    ss << topic << " - INT - " << value;
+    ss << topic << " - INT - " << value_repr();
     return ss.str();
   }
+
+  microloop::Buffer serialize() const;
 };
 
 template <>
@@ -49,11 +64,10 @@ struct DeviceMessage<PayloadType::SHORT_REAL>
   /* The value stored in this message multiplied by 100. */
   std::uint16_t value;
 
-  std::string str() const
+  std::string value_repr() const
   {
     std::stringstream ss;
 
-    ss << topic << " - SHORT_REAL - ";
     ss << (value / 100);
 
     if (auto frac = value % 100; frac != 0)
@@ -70,6 +84,16 @@ struct DeviceMessage<PayloadType::SHORT_REAL>
 
     return ss.str();
   }
+
+  std::string str() const
+  {
+    std::stringstream ss;
+    ss << topic << " - SHORT_REAL - " << value_repr();
+
+    return ss.str();
+  }
+
+  microloop::Buffer serialize() const;
 };
 
 template <>
@@ -80,10 +104,9 @@ struct DeviceMessage<PayloadType::FLOAT>
   std::uint8_t float_size;
   std::uint32_t abs_val;
 
-  std::string str() const
+  std::string value_repr() const
   {
     std::stringstream ss;
-    ss << topic << " - FLOAT - ";
 
     /* Take care of the sign */
     ss << (sign ? "-" : "");
@@ -102,6 +125,16 @@ struct DeviceMessage<PayloadType::FLOAT>
 
     return ss.str();
   }
+
+  std::string str() const
+  {
+    std::stringstream ss;
+    ss << topic << " - FLOAT - " << value_repr();
+
+    return ss.str();
+  }
+
+  microloop::Buffer serialize() const;
 };
 
 template <>
@@ -110,12 +143,19 @@ struct DeviceMessage<PayloadType::STRING>
   std::string topic;
   std::string value;
 
+  std::string value_repr() const
+  {
+    return value;
+  }
+
   std::string str() const
   {
     std::stringstream ss;
-    ss << topic << " - STRING - " << value;
+    ss << topic << " - STRING - " << value_repr();
     return ss.str();
   }
+
+  microloop::Buffer serialize() const;
 };
 
 using GenericDeviceMessage = std::variant<DeviceMessage<PayloadType::INT>,

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "microloop/buffer.h"
+#include "commons/server_response.h"
+#include "device_messages.h"
 
 #include <cstdint>
 #include <string>
@@ -14,9 +16,10 @@ enum MessageType : std::uint8_t
   GREETING,
   SUBSCRIBE,
   UNSUBSCRIBE,
-  _COUNT,  // Must always be the last enumerator
+  _COUNT,  // End of valid messages from client.
+  RESPONSE,
+  DEVICE_MSG,
 };
-
 
 /**
  * \brief Message to be retrieved from subscriber clients upon connection initiation. This message
@@ -62,8 +65,36 @@ struct UnsubscribeRequest
   microloop::Buffer serialize() const;
 };
 
+/**
+ * \brief Response to be sent to subscribers regarding their requests.
+ */
+struct ServerResponse
+{
+  /* The status code of this response. */
+  server_response::StatusCode code;
+
+  /* Optional notes of this response. Will be truncated/extended to exactly 64 bytes. */
+  std::string notes;
+
+  /* Serialize this response into a buffer ready to be sent over the network. */
+  microloop::Buffer serialize() const;
+};
+
+/**
+ * \brief Message containing a serialized version of another message coming from the UDP endpoint
+ * (i.e. Device Endpoint).
+ */
+struct SerializedDeviceMessage
+{
+  /* The device address as obtained from AddressWrapper::str() */
+  std::string device_address;
+
+  /* The serialized message as obtained from DeviceMessage::str() */
+  std::string device_message;
+};
+
 /* Message types supported from subscriber clients. */
-using SubscriberMessage = std::variant<GreetingMessage, SubscribeRequest, UnsubscribeRequest>;
+using SubscriberMessage = std::variant<GreetingMessage, SubscribeRequest, UnsubscribeRequest, ServerResponse>;
 
 /**
  * \brief Checks whether the supplied byte represents a valid message type.
