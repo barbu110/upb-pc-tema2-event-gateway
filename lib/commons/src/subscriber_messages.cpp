@@ -16,11 +16,11 @@ bool is_valid_message_type(uint8_t value)
 
 SubscriberMessage from_buffer(const microloop::Buffer &buf)
 {
+  using internal::POD_DeviceNotification;
   using internal::POD_GreetingMessage;
+  using internal::POD_ServerResponse;
   using internal::POD_SubscribeRequest;
   using internal::POD_UnsubscribeRequest;
-  using internal::POD_ServerResponse;
-  using internal::POD_DeviceNotification;
 
   auto payload = static_cast<const std::uint8_t *>(buf.data());
 
@@ -35,17 +35,17 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
     return GreetingMessage{std::string{client_id}};
   }
   case MessageType::SUBSCRIBE: {
-    auto pod = reinterpret_cast<const POD_SubscribeRequest *>(payload);
+    auto pod = reinterpret_cast<const POD_SubscribeRequest *>(payload + 1);
     return SubscribeRequest{std::string{pod->topic}, pod->store_forward};
   }
   case MessageType::UNSUBSCRIBE: {
-    auto pod = reinterpret_cast<const POD_UnsubscribeRequest *>(payload);
+    auto pod = reinterpret_cast<const POD_UnsubscribeRequest *>(payload + 1);
     return UnsubscribeRequest{std::string{pod->topic}};
   }
   case MessageType::RESPONSE: {
     using commons::server_response::StatusCode;
 
-    auto pod = reinterpret_cast<const POD_ServerResponse *>(payload);
+    auto pod = reinterpret_cast<const POD_ServerResponse *>(payload + 1);
     return ServerResponse{static_cast<StatusCode>(pod->code), std::string{pod->notes}};
   }
   default:

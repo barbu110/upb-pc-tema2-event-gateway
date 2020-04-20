@@ -13,6 +13,8 @@ enum StatusCode : std::uint8_t
   EXPECTED_GREETING,
   UNEXPECTED_GREETING,
   DUPLICATE_CLIENT_ID,
+  SUBSCRIBE_SUCCESSFUL,
+  UNSUBSCRIBE_SUCCESSFUL,
 };
 
 static std::string status_str(StatusCode c)
@@ -29,6 +31,10 @@ static std::string status_str(StatusCode c)
     return "Unexpected greeting.";
   case DUPLICATE_CLIENT_ID:
     return "Duplicate client ID.";
+  case SUBSCRIBE_SUCCESSFUL:
+    return "Successfully subscribed.";
+  case UNSUBSCRIBE_SUCCESSFUL:
+    return "Successfully unsubscribed.";
   default:
     __builtin_unreachable();
   }

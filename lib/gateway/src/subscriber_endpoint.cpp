@@ -39,7 +39,8 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
 
   if (!is_valid_message_type(msg_type))
   {
-    // TODO Send error response to client.
+    ServerResponse error_response{StatusCode::INVALID_MSG_TYPE};
+    conn.send(error_response.serialize());
     return;
   }
 
@@ -49,7 +50,12 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
   {
     if (msg_type != MessageType::GREETING)
     {
-      // TODO Send error response to client.
+      ServerResponse error_response{StatusCode::EXPECTED_GREETING};
+      conn.send(error_response.serialize());
+
+      server_.close_conn(conn);
+      subscribers_.disconnect(conn);
+
       return;
     }
 
@@ -74,7 +80,9 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
 
   if (msg_type == MessageType::GREETING)
   {
-    // TODO Send error response to client.
+    ServerResponse error_response{StatusCode::EXPECTED_GREETING};
+    conn.send(error_response.serialize());
+
     return;
   }
 
@@ -110,16 +118,22 @@ void SubscriberEndpoint::on_client_greeting(SubscriberConnection &subscriber)
 void SubscriberEndpoint::on_subscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::SubscribeRequest &msg)
 {
-  std::cout << "Client " << subscriber.client_id << " requested subscription to " << msg.topic
-            << "\n";
+  using namespace commons::subscriber_messages;
+  using namespace commons::server_response;
+
+  ServerResponse confirmation{StatusCode::SUBSCRIBE_SUCCESSFUL, msg.topic};
+  subscriber.raw_conn->send(confirmation.serialize());
 }
 
 /* Callback to be invoked when a client sends an unsubscribe request. */
 void SubscriberEndpoint::on_unsubscribe(SubscriberConnection &subscriber,
     const commons::subscriber_messages::UnsubscribeRequest &msg)
 {
-  std::cout << "Client " << subscriber.client_id << " requested to unsubscribe from " << msg.topic
-            << "\n";
+  using namespace commons::subscriber_messages;
+  using namespace commons::server_response;
+
+  ServerResponse confirmation{StatusCode::UNSUBSCRIBE_SUCCESSFUL, msg.topic};
+  subscriber.raw_conn->send(confirmation.serialize());
 }
 
 }  // namespace gateway::endpoint

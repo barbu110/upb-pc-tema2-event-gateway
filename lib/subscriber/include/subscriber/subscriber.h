@@ -9,7 +9,9 @@
 #include <iostream>
 #include <signal.h>
 #include <string>
+#include <type_traits>
 #include <unistd.h>
+#include <variant>
 
 namespace subscriber
 {
@@ -65,8 +67,39 @@ private:
   {
     if (buf.empty())
     {
+      // TODO Print goodbye message
       kill(getpid(), SIGINT);
+      return;
     }
+
+    using namespace commons::subscriber_messages;
+
+    std::visit(
+        [&](auto &&msg) {
+          using T = std::decay_t<decltype(msg)>;
+
+          if constexpr (std::is_same_v<T, ServerResponse>)
+          {
+            using namespace commons::server_response;
+
+            if (msg.code == StatusCode::OK) {}
+            else if (msg.code == StatusCode::SUBSCRIBE_SUCCESSFUL)
+            {
+              auto topic = msg.notes;
+              std::cout << "response: subscribed to " << topic << "\n";
+            }
+            else if (msg.code == StatusCode::UNSUBSCRIBE_SUCCESSFUL)
+            {
+              auto topic = msg.notes;
+              std::cout << "response: unsubscribed from " << topic << "\n";
+            }
+            else
+            {
+              std::cerr << "error response: " << status_str(msg.code) << "\n";
+            }
+          }
+        },
+        from_buffer(buf));
   }
 
   void on_keyboard_input(const std::string &input)
