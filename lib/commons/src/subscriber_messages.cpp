@@ -60,4 +60,35 @@ microloop::Buffer GreetingMessage::serialize() const
   return buf;
 }
 
+microloop::Buffer SubscribeRequest::serialize() const
+{
+  using internal::client_id_maxlen;
+  using commons::internal::topic_maxlen;
+  using internal::POD_SubscribeRequest;
+
+  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_SubscribeRequest)};
+  std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
+
+  data[0] = MessageType::SUBSCRIBE;
+  memcpy(data + 1, topic.c_str(), std::min(topic_maxlen(), topic.size()));
+  data[buf.size() - 1] = store_forward;
+
+  return buf;
+}
+
+microloop::Buffer UnsubscribeRequest::serialize() const
+{
+  using internal::client_id_maxlen;
+  using commons::internal::topic_maxlen;
+  using internal::POD_UnsubscribeRequest;
+
+  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_UnsubscribeRequest)};
+  std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
+
+  data[0] = MessageType::UNSUBSCRIBE;
+  memcpy(data + 1, topic.c_str(), std::min(topic_maxlen(), topic.size()));
+
+  return buf;
+}
+
 }  // namespace commons::subscriber_messages
