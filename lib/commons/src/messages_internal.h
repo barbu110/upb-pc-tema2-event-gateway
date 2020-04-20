@@ -54,7 +54,7 @@ struct POD_UnsubscribeRequest
 struct POD_ServerResponse
 {
   std::uint8_t code;
-  std::uint8_t notes[notes_maxlen()];
+  char notes[notes_maxlen()];
 };
 
 struct POD_DeviceNotification

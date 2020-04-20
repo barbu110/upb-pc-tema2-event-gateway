@@ -19,6 +19,8 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
   using internal::POD_GreetingMessage;
   using internal::POD_SubscribeRequest;
   using internal::POD_UnsubscribeRequest;
+  using internal::POD_ServerResponse;
+  using internal::POD_DeviceNotification;
 
   auto payload = static_cast<const std::uint8_t *>(buf.data());
 
@@ -39,6 +41,12 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
   case MessageType::UNSUBSCRIBE: {
     auto pod = reinterpret_cast<const POD_UnsubscribeRequest *>(payload);
     return UnsubscribeRequest{std::string{pod->topic}};
+  }
+  case MessageType::RESPONSE: {
+    using commons::server_response::StatusCode;
+
+    auto pod = reinterpret_cast<const POD_ServerResponse *>(payload);
+    return ServerResponse{static_cast<StatusCode>(pod->code), std::string{pod->notes}};
   }
   default:
     __builtin_unreachable();

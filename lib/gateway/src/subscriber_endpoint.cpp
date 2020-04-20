@@ -19,6 +19,7 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
     const microloop::Buffer &buf)
 {
   using namespace commons::subscriber_messages;
+  using namespace commons::server_response;
 
   auto is_pending_conn = subscribers_.is_pending(conn.fd());
 
@@ -27,10 +28,6 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
     if (!is_pending_conn)
     {
       on_disconnect(*subscribers_.with_fd(conn.fd()));
-    }
-    else
-    {
-      std::cout << "Pending connection from " << conn.str() << " closed.\n";
     }
 
     server_.close_conn(conn);
@@ -61,7 +58,12 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
     auto subscriber_conn = subscribers_.attach_client_id(conn, greeting.client_id);
     if (!subscriber_conn)
     {
-      // TODO Send error response to client (DUPLICATE_CLIENT_ID).
+      ServerResponse error_response{StatusCode::DUPLICATE_CLIENT_ID};
+      conn.send(error_response.serialize());
+
+      server_.close_conn(conn);
+      subscribers_.disconnect(conn);
+
       return;
     }
 
