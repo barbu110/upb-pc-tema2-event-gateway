@@ -2,6 +2,7 @@
 
 #include "microloop/buffer.h"
 #include "microloop/event_source.h"
+#include "microloop/kernel_exception.h"
 
 #include <fcntl.h>
 #include <string>
