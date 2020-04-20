@@ -4,6 +4,8 @@
 #include "microloop/event_source.h"
 #include "microloop/kernel_exception.h"
 
+#include <limits>
+#include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
 #include <tuple>
@@ -14,6 +16,10 @@ namespace net_utils
 class AddressWrapper
 {
 public:
+  static constexpr std::size_t str_maxlen = INET6_ADDRSTRLEN +  // The maximum length of the IP part
+      1 +  // The colon sign
+      std::numeric_limits<std::uint16_t>::digits10;  // The maximum length of the port part
+
   AddressWrapper() = default;
 
   AddressWrapper(std::uint32_t server_sock, sockaddr_storage addr, socklen_t addrlen) :

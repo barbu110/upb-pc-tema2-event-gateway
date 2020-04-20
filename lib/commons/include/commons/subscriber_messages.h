@@ -16,9 +16,9 @@ enum MessageType : std::uint8_t
   GREETING,
   SUBSCRIBE,
   UNSUBSCRIBE,
-  _COUNT,  // End of valid messages from client.
   RESPONSE,
   DEVICE_MSG,
+  _COUNT,  // End of valid messages from client.
 };
 
 /**
@@ -84,18 +84,23 @@ struct ServerResponse
  * \brief Message containing a serialized version of another message coming from the UDP endpoint
  * (i.e. Device Endpoint).
  */
-struct SerializedDeviceMessage
+struct DeviceNotification
 {
   /* The device address as obtained from AddressWrapper::str() */
   std::string device_address;
 
-  /* The serialized message as obtained from DeviceMessage::str() */
-  std::string device_message;
+  /* A copy of the original message sent by the device. */
+  device_messages::GenericDeviceMessage original_message;
+
+  microloop::Buffer serialize() const;
 };
 
 /* Message types supported from subscriber clients. */
-using SubscriberMessage
-    = std::variant<GreetingMessage, SubscribeRequest, UnsubscribeRequest, ServerResponse>;
+using SubscriberMessage = std::variant<GreetingMessage,
+    SubscribeRequest,
+    UnsubscribeRequest,
+    ServerResponse,
+    DeviceNotification>;
 
 /**
  * \brief Checks whether the supplied byte represents a valid message type.

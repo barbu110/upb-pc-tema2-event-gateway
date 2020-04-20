@@ -1,5 +1,9 @@
 #pragma once
 
+#include "net_utils/receive_from.h"
+
+#include <cstdint>
+
 namespace commons::internal
 {
 
@@ -26,6 +30,11 @@ static constexpr std::size_t msg_payload_size()
   return 1500;
 }
 
+static constexpr std::size_t notes_maxlen()
+{
+  return 64;
+}
+
 struct POD_GreetingMessage
 {
   char client_id[client_id_maxlen()];
@@ -40,6 +49,18 @@ struct POD_SubscribeRequest
 struct POD_UnsubscribeRequest
 {
   char topic[topic_maxlen()];
+};
+
+struct POD_ServerResponse
+{
+  std::uint8_t code;
+  std::uint8_t notes[notes_maxlen()];
+};
+
+struct POD_DeviceNotification
+{
+  std::uint8_t device_address[net_utils::AddressWrapper::str_maxlen];
+  std::uint8_t raw_message[1551];
 };
 
 }  // namespace commons::subscriber_messages::internal

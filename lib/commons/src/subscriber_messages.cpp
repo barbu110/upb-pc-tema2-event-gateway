@@ -1,6 +1,7 @@
 #include "commons/subscriber_messages.h"
 
 #include "messages_internal.h"
+#include "net_utils/receive_from.h"
 
 #include <algorithm>
 #include <cstring>
@@ -87,6 +88,43 @@ microloop::Buffer UnsubscribeRequest::serialize() const
 
   data[0] = MessageType::UNSUBSCRIBE;
   memcpy(data + 1, topic.c_str(), std::min(topic_maxlen(), topic.size()));
+
+  return buf;
+}
+
+microloop::Buffer ServerResponse::serialize() const
+{
+  using commons::subscriber_messages::internal::notes_maxlen;
+  using internal::POD_ServerResponse;
+
+  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_ServerResponse)};
+  std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
+
+  data[0] = MessageType::RESPONSE;
+
+  auto server_response = reinterpret_cast<POD_ServerResponse *>(data + 1);
+  server_response->code = code;
+  std::memcpy(server_response->notes, notes.c_str(), std::min(notes.size(), notes_maxlen()));
+
+  return buf;
+}
+
+microloop::Buffer DeviceNotification::serialize() const
+{
+  using internal::POD_DeviceNotification;
+
+  microloop::Buffer raw_dev_msg;
+  std::visit([&](auto &&arg) { raw_dev_msg = arg.serialize(); }, original_message);
+
+  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_DeviceNotification)};
+  std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
+
+  data[0] = MessageType::DEVICE_MSG;
+
+  auto notification = reinterpret_cast<POD_DeviceNotification *>(data + 1);
+  std::memcpy(notification->device_address, device_address.c_str(),
+      std::min(net_utils::AddressWrapper::str_maxlen, device_address.size()));
+  std::memcpy(notification->raw_message, raw_dev_msg.data(), raw_dev_msg.size());
 
   return buf;
 }
