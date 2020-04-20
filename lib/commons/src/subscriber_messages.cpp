@@ -62,8 +62,8 @@ microloop::Buffer GreetingMessage::serialize() const
 
 microloop::Buffer SubscribeRequest::serialize() const
 {
-  using internal::client_id_maxlen;
   using commons::internal::topic_maxlen;
+  using internal::client_id_maxlen;
   using internal::POD_SubscribeRequest;
 
   microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_SubscribeRequest)};
@@ -78,8 +78,8 @@ microloop::Buffer SubscribeRequest::serialize() const
 
 microloop::Buffer UnsubscribeRequest::serialize() const
 {
-  using internal::client_id_maxlen;
   using commons::internal::topic_maxlen;
+  using internal::client_id_maxlen;
   using internal::POD_UnsubscribeRequest;
 
   microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_UnsubscribeRequest)};

@@ -1,7 +1,7 @@
 #include "commons/device_messages.h"
 
-#include "microloop/buffer.h"
 #include "messages_internal.h"
+#include "microloop/buffer.h"
 
 #include <algorithm>
 #include <arpa/inet.h>
@@ -89,8 +89,8 @@ microloop::Buffer DeviceMessage<PayloadType::SHORT_REAL>::serialize() const
 
 microloop::Buffer DeviceMessage<PayloadType::FLOAT>::serialize() const
 {
-  using commons::device_messages::internal::POD_DeviceMessage_Header;
   using commons::device_messages::internal::POD_DeviceMessage_Float;
+  using commons::device_messages::internal::POD_DeviceMessage_Header;
   using commons::internal::topic_maxlen;
 
   microloop::Buffer buf{sizeof(POD_DeviceMessage_Header) + sizeof(POD_DeviceMessage_Float)};

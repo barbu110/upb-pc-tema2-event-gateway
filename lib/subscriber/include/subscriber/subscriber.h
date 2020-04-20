@@ -1,9 +1,9 @@
 #pragma once
 
+#include "absl/strings/str_split.h"
 #include "commons/subscriber_messages.h"
 #include "net_utils/keyboard_input.h"
 #include "net_utils/tcp_client.h"
-#include "absl/strings/str_split.h"
 
 #include <cstdint>
 #include <iostream>

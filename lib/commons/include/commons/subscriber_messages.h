@@ -1,8 +1,8 @@
 #pragma once
 
-#include "microloop/buffer.h"
 #include "commons/server_response.h"
 #include "device_messages.h"
+#include "microloop/buffer.h"
 
 #include <cstdint>
 #include <string>
@@ -94,7 +94,8 @@ struct SerializedDeviceMessage
 };
 
 /* Message types supported from subscriber clients. */
-using SubscriberMessage = std::variant<GreetingMessage, SubscribeRequest, UnsubscribeRequest, ServerResponse>;
+using SubscriberMessage
+    = std::variant<GreetingMessage, SubscribeRequest, UnsubscribeRequest, ServerResponse>;
 
 /**
  * \brief Checks whether the supplied byte represents a valid message type.

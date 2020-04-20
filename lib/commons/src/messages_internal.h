@@ -74,4 +74,4 @@ struct POD_DeviceMessage_Float
   std::uint8_t float_size;
 } __attribute__((__packed__));
 
-}
+}  // namespace commons::device_messages::internal
