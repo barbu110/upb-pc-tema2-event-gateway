@@ -8,5 +8,6 @@ cc_library(
     "//lib/net_utils",
     "//lib/commons",
     "@micro//lib/microloop:microloop",
+    "@com_google_absl//absl/strings",
   ],
 )

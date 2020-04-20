@@ -8,3 +8,9 @@ git_repository(
   branch = "master",
 )
 
+git_repository(
+  name = "com_google_absl",
+  remote = "https://github.com/abseil/abseil-cpp.git",
+  commit = "ac78ffc3bc0a8b295cab9a03817760fd460df2a1",
+  shallow_since = "1568303870 -0400",
+)
