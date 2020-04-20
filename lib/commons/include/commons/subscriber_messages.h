@@ -26,6 +26,9 @@ struct GreetingMessage
 {
   /* Client ID string. No more than 10 characters. */
   std::string client_id;
+
+  /* Create a buffer from this message to be sent over the network. */
+  microloop::Buffer serialize() const;
 };
 
 /**
@@ -39,6 +42,9 @@ struct SubscribeRequest
 
   /* Whether to enable Store and Forward mechanism for this subscription. */
   bool store_forward;
+
+  /* Create a buffer from this message to be sent over the network. */
+  microloop::Buffer serialize() const;
 };
 
 /**
@@ -51,6 +57,9 @@ struct UnsubscribeRequest
 {
   /* The topic to unsubscribe the client from. */
   std::string topic;
+
+  /* Create a buffer from this message to be sent over the network. */
+  microloop::Buffer serialize() const;
 };
 
 /* Message types supported from subscriber clients. */

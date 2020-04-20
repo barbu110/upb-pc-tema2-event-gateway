@@ -7,3 +7,12 @@ cc_binary(
     "@micro//lib/microloop:microloop",
   ],
 )
+
+cc_binary(
+  name = "subscriber",
+  srcs = ["subscriber.cpp"],
+  deps = [
+    "//lib/subscriber:subscriber",
+    "@micro//lib/microloop:microloop",
+  ],
+)

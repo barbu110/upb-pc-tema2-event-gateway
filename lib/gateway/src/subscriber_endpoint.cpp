@@ -10,6 +10,8 @@ namespace gateway::endpoint
 
 void SubscriberEndpoint::on_tcp_conn(microloop::net::TcpServer::PeerConnection &conn)
 {
+  std::cout << "Naked connection received from " << conn.str() << "\n";
+
   subscribers_.register_unnamed_client(conn);
 }
 
@@ -25,6 +27,10 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
     if (!is_pending_conn)
     {
       on_disconnect(*subscribers_.with_fd(conn.fd()));
+    }
+    else
+    {
+      std::cout << "Pending connection from " << conn.str() << " closed.\n";
     }
 
     server_.close_conn(conn);

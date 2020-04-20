@@ -5,7 +5,8 @@ cc_library(
   includes = ["include"],
   visibility = ["//visibility:public"],
   deps = [
+    "//lib/net_utils",
+    "//lib/commons",
     "@micro//lib/microloop:microloop",
   ],
 )
-

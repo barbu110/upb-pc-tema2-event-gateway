@@ -46,4 +46,18 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
   }
 }
 
+microloop::Buffer GreetingMessage::serialize() const
+{
+  using internal::client_id_maxlen;
+  using internal::POD_GreetingMessage;
+
+  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_GreetingMessage)};
+  std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
+
+  data[0] = MessageType::GREETING;
+  memcpy(data + 1, client_id.c_str(), std::min(client_id_maxlen(), client_id.size()));
+
+  return buf;
+}
+
 }  // namespace commons::subscriber_messages
