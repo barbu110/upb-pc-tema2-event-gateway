@@ -52,7 +52,6 @@ private:
     std::cout << "Connected to " << c.str() << "\n";
 
     commons::subscriber_messages::GreetingMessage greeting{client_id_};
-
     c.send(greeting.serialize());
   }
 

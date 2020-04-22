@@ -10,8 +10,6 @@ namespace gateway::endpoint
 
 void SubscriberEndpoint::on_tcp_conn(microloop::net::TcpServer::PeerConnection &conn)
 {
-  std::cout << "Naked connection received from " << conn.str() << "\n";
-
   subscribers_.register_unnamed_client(conn);
 }
 
@@ -112,7 +110,7 @@ void SubscriberEndpoint::on_disconnect(SubscriberConnection &subscriber)
 void SubscriberEndpoint::on_client_greeting(SubscriberConnection &subscriber)
 {
   std::cout << "New client \"" << subscriber.client_id << "\" connected from "
-            << subscriber.raw_conn->str() << ".\n";
+            << subscriber.raw_conn->str(false) << ".\n";
 }
 
 void SubscriberEndpoint::on_subscribe(SubscriberConnection &subscriber,
@@ -120,6 +118,14 @@ void SubscriberEndpoint::on_subscribe(SubscriberConnection &subscriber,
 {
   using namespace commons::subscriber_messages;
   using namespace commons::server_response;
+
+  if (!subscribers_.add_subscription(subscriber.client_id, msg))
+  {
+    ServerResponse error_response{StatusCode::DUPLICATE_SUBSCRIPTION, msg.topic};
+    subscriber.raw_conn->send(error_response.serialize());
+
+    return;
+  }
 
   ServerResponse confirmation{StatusCode::SUBSCRIBE_SUCCESSFUL, msg.topic};
   subscriber.raw_conn->send(confirmation.serialize());

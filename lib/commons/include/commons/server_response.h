@@ -15,6 +15,7 @@ enum StatusCode : std::uint8_t
   DUPLICATE_CLIENT_ID,
   SUBSCRIBE_SUCCESSFUL,
   UNSUBSCRIBE_SUCCESSFUL,
+  DUPLICATE_SUBSCRIPTION,
 };
 
 static std::string status_str(StatusCode c)
@@ -35,6 +36,8 @@ static std::string status_str(StatusCode c)
     return "Successfully subscribed.";
   case UNSUBSCRIBE_SUCCESSFUL:
     return "Successfully unsubscribed.";
+  case DUPLICATE_SUBSCRIPTION:
+    return "Already subscribed.";
   default:
     __builtin_unreachable();
   }
