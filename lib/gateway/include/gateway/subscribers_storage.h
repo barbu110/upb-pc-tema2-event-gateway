@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commons/device_messages.h"
+#include "commons/subscriber_messages.h"
 #include "gateway/subscriber_conn.h"
 #include "microloop/net/tcp_server.h"
 
@@ -115,7 +116,8 @@ public:
    * Subscriber Connection object identified by the \p conn TCP connection had any subscriptions
    * with Store&Forward feature enabled, the underlying object will be kept without any attached
    * TCP connections. If no such subscriptions are identified, the object will be completely removed
-   * from the udnerlying data structures.
+   * from the udnerlying data structures. All the subscriptions without Store&Forward featuer
+   * enabled will be destroyed.
    */
   void disconnect(microloop::net::TcpServer::PeerConnection &conn)
   {
@@ -135,21 +137,64 @@ public:
 
     conn_it->raw_conn = nullptr;
 
-    auto [first, last] = subscriptions_.equal_range(conn_it->client_id);
-    auto sf_enabled_subs_count = std::count_if(first, last, [](auto &&p) {
-      auto &[k, v] = p;
-      return v.store_forward;
-    });
-    if (sf_enabled_subs_count != 0)
+    auto sf_enabled_subs_count = 0;
+
+    for (auto it = subscriptions_.begin(); it != subscriptions_.end();)
+    {
+      auto &[_, s] = *it;
+
+      if (s.store_forward)
+      {
+        sf_enabled_subs_count++;
+        it++;
+      }
+      else
+      {
+        /* Erase subscriptions with Store&Forward disabled. */
+        it = subscriptions_.erase(it);
+      }
+    }
+
+    if (sf_enabled_subs_count)
     {
       return;
     }
 
-    /* Remove the subscriptions */
-    subscriptions_.erase(first, last);
-
     /* Remove the connection itself */
     connections_.erase(conn_it);
+  }
+
+  /**
+   * \brief Add a subscription to the client identified by \p client_id.
+   * \param client_id The client that is subject to the subscribe request.
+   * \param req The subscribe request to be processed.
+   * \return The newly allocated subscription, or `nullptr` if the client was already subscribed
+   * to the topic in the request.
+   */
+  Subscription *add_subscription(std::string client_id,
+      const commons::subscriber_messages::SubscribeRequest &req)
+  {
+    auto [first, last] = subscriptions_.equal_range(client_id);
+    for (auto it = first; it != last; ++it)
+    {
+      auto &[_, s] = *it;
+      if (s.topic == req.topic)
+      {
+        return nullptr;
+      }
+    }
+
+    Subscription s{client_id, req.topic, req.store_forward};
+    auto &[key, val] = *subscriptions_.emplace(client_id, std::move(s));
+    return &val;
+  }
+
+  /**
+   * \brief Get the subscriptions associated with a client at a given moment.
+   */
+  auto subscriptions(std::string client_id) const
+  {
+    return subscriptions_.equal_range(client_id);
   }
 
 private:
