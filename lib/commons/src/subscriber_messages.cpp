@@ -1,5 +1,6 @@
 #include "commons/subscriber_messages.h"
 
+#include "commons/device_messages.h"
 #include "messages_internal.h"
 #include "net_utils/receive_from.h"
 
@@ -47,6 +48,11 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
 
     auto pod = reinterpret_cast<const POD_ServerResponse *>(payload + 1);
     return ServerResponse{static_cast<StatusCode>(pod->code), std::string{pod->notes}};
+  }
+  case MessageType::DEVICE_MSG: {
+    auto pod = reinterpret_cast<const POD_DeviceNotification *>(payload + 1);
+    return DeviceNotification{std::string{pod->device_address},
+        commons::device_messages::from_buffer(pod->raw_message, sizeof(pod->raw_message))};
   }
   default:
     __builtin_unreachable();

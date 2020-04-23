@@ -164,5 +164,6 @@ using GenericDeviceMessage = std::variant<DeviceMessage<PayloadType::INT>,
     DeviceMessage<PayloadType::STRING>>;
 
 GenericDeviceMessage from_buffer(const microloop::Buffer &buf);
+GenericDeviceMessage from_buffer(const void *data, std::size_t n);
 
 }  // namespace commons::device_messages

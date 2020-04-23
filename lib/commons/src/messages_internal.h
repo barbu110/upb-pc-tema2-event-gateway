@@ -59,7 +59,7 @@ struct POD_ServerResponse
 
 struct POD_DeviceNotification
 {
-  std::uint8_t device_address[net_utils::AddressWrapper::str_maxlen];
+  char device_address[net_utils::AddressWrapper::str_maxlen];
   std::uint8_t raw_message[1551];
 };
 

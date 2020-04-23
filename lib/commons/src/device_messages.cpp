@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <arpa/inet.h>
+#include <cstdint>
+#include <cstdlib>
 #include <iterator>
 
 namespace commons::device_messages
@@ -12,7 +14,12 @@ namespace commons::device_messages
 
 GenericDeviceMessage from_buffer(const microloop::Buffer &buf)
 {
-  auto data = static_cast<const char *>(buf.data());
+  return from_buffer(buf.data(), buf.size());
+}
+
+GenericDeviceMessage from_buffer(const void *buf, std::size_t n)
+{
+  auto data = static_cast<const std::uint8_t *>(buf);
   auto data_it = data;
 
   using commons::internal::topic_maxlen;
@@ -41,7 +48,7 @@ GenericDeviceMessage from_buffer(const microloop::Buffer &buf)
     return DeviceMessage<FLOAT>{topic, sign, float_size, abs_val};
   }
   case STRING: {
-    return DeviceMessage<STRING>{topic, std::string{data_it, data + buf.size()}};
+    return DeviceMessage<STRING>{topic, std::string{data_it, data + n}};
   }
   default:
     __builtin_unreachable();
