@@ -31,7 +31,7 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
     const POD_GreetingMessage *pod = reinterpret_cast<const POD_GreetingMessage *>(payload + 1);
 
     char client_id[sizeof(pod->client_id) + 1]{};
-    memcpy(client_id, pod->client_id, std::min<size_t>(buf.size() - 1, sizeof(client_id)));
+    memcpy(client_id, pod->client_id, std::min<size_t>(buf.size() - 1, sizeof(pod->client_id)));
 
     return GreetingMessage{std::string{client_id}};
   }

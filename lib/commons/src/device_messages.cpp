@@ -23,7 +23,9 @@ GenericDeviceMessage from_buffer(const void *buf, std::size_t n)
   auto data_it = data;
 
   using commons::internal::topic_maxlen;
-  std::string topic{data_it, data_it + topic_maxlen()};
+  char topic_buf[topic_maxlen() + 1]{0};
+  std::memcpy(topic_buf, data_it, topic_maxlen());
+  std::string topic{topic_buf};
   data_it += topic_maxlen();
 
   PayloadType type = static_cast<PayloadType>(*data_it++);
@@ -48,7 +50,12 @@ GenericDeviceMessage from_buffer(const void *buf, std::size_t n)
     return DeviceMessage<FLOAT>{topic, sign, float_size, abs_val};
   }
   case STRING: {
-    return DeviceMessage<STRING>{topic, std::string{data_it, data + n}};
+    using commons::subscriber_messages::internal::msg_payload_size;
+
+    auto offset = data_it - data;
+    char payload_buf[msg_payload_size() + 1]{};
+    std::memcpy(payload_buf, data_it, std::min<std::size_t>(n - offset, msg_payload_size()));
+    return DeviceMessage<STRING>{topic, std::string{payload_buf}};
   }
   default:
     __builtin_unreachable();
