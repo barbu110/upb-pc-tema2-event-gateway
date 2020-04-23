@@ -189,6 +189,11 @@ public:
     return &val;
   }
 
+  auto &subscriptions() const
+  {
+    return subscriptions_;
+  }
+
   /**
    * \brief Get the subscriptions associated with a client at a given moment.
    */
