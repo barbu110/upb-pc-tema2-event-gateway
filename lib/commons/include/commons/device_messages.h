@@ -39,8 +39,7 @@ struct DeviceMessage<PayloadType::INT>
 
   std::string value_repr() const
   {
-    static constexpr std::size_t max_digits = std::numeric_limits<std::uint32_t>::digits10;
-    char buf[max_digits + 1 + 1]{};
+    char buf[16]{};
 
     std::snprintf(buf, sizeof(buf), "%s%ld", sign ? "-" : "", value);
     return buf;
