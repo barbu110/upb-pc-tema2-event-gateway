@@ -97,6 +97,12 @@ private:
               std::cerr << "error response: " << status_str(msg.code) << "\n";
             }
           }
+          else if constexpr (std::is_same_v<T, DeviceNotification>)
+          {
+            std::cout << msg.device_address << " - ";
+            std::visit([](auto &&m) { std::cout << m.str(); }, msg.original_message);
+            std::cout << "\n";
+          }
         },
         from_buffer(buf));
   }
