@@ -15,44 +15,69 @@ bool is_valid_message_type(uint8_t value)
   return value < MessageType::_COUNT;
 }
 
-SubscriberMessage from_buffer(const microloop::Buffer &buf)
+bool can_parse_entire_msg(const microloop::Buffer &buf)
 {
-  using internal::POD_DeviceNotification;
+  using internal::MsgHdr;
+
+  if (buf.size() < sizeof(MsgHdr))
+  {
+    return false;
+  }
+
+  auto hdr = (MsgHdr *)buf.data();
+  if (buf.size() - sizeof(MsgHdr) < ntohs(hdr->msg_size))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+std::pair<SubscriberMessage, std::size_t> from_buffer(const microloop::Buffer &buf)
+{
+  using internal::MsgHdr;
+  using internal::POD_DeviceNotification_Hdr;
   using internal::POD_GreetingMessage;
   using internal::POD_ServerResponse;
   using internal::POD_SubscribeRequest;
   using internal::POD_UnsubscribeRequest;
 
-  auto payload = static_cast<const std::uint8_t *>(buf.data());
+  auto data = static_cast<const std::uint8_t *>(buf.data());
+  auto hdr = (MsgHdr *)data;
+  auto msg = data + sizeof(MsgHdr);
 
-  switch (*reinterpret_cast<const MessageType *>(buf.data()))
+  auto consumed = sizeof(MsgHdr) + ntohs(hdr->msg_size);
+
+  switch (hdr->type)
   {
   case MessageType::GREETING: {
-    const POD_GreetingMessage *pod = reinterpret_cast<const POD_GreetingMessage *>(payload + 1);
+    auto pod = (const POD_GreetingMessage *)msg;
 
     char client_id[sizeof(pod->client_id) + 1]{};
-    memcpy(client_id, pod->client_id, std::min<size_t>(buf.size() - 1, sizeof(pod->client_id)));
+    memcpy(client_id, pod->client_id, sizeof(pod->client_id));
 
-    return GreetingMessage{std::string{client_id}};
+    return {GreetingMessage{std::string{client_id}}, consumed};
   }
   case MessageType::SUBSCRIBE: {
-    auto pod = reinterpret_cast<const POD_SubscribeRequest *>(payload + 1);
-    return SubscribeRequest{std::string{pod->topic}, pod->store_forward};
+    auto pod = (const POD_SubscribeRequest *)msg;
+    return {SubscribeRequest{std::string{pod->topic}, pod->store_forward}, consumed};
   }
   case MessageType::UNSUBSCRIBE: {
-    auto pod = reinterpret_cast<const POD_UnsubscribeRequest *>(payload + 1);
-    return UnsubscribeRequest{std::string{pod->topic}};
+    auto pod = (const POD_UnsubscribeRequest *)msg;
+    return {UnsubscribeRequest{std::string{pod->topic}}, consumed};
   }
   case MessageType::RESPONSE: {
     using commons::server_response::StatusCode;
 
-    auto pod = reinterpret_cast<const POD_ServerResponse *>(payload + 1);
-    return ServerResponse{static_cast<StatusCode>(pod->code), std::string{pod->notes}};
+    auto pod = (const POD_ServerResponse *)msg;
+    return {ServerResponse{static_cast<StatusCode>(pod->code), std::string{pod->notes}}, consumed};
   }
   case MessageType::DEVICE_MSG: {
-    auto pod = reinterpret_cast<const POD_DeviceNotification *>(payload + 1);
-    return DeviceNotification{std::string{pod->device_address},
-        commons::device_messages::from_buffer(pod->raw_message, sizeof(pod->raw_message))};
+    auto notif_hdr = (const POD_DeviceNotification_Hdr *)msg;
+    auto notif_msg = msg + sizeof(POD_DeviceNotification_Hdr);
+    auto notif_len = ntohs(hdr->msg_size) - sizeof(POD_DeviceNotification_Hdr);
+    auto device_msg = device_messages::from_buffer(notif_msg, notif_len);
+    return {DeviceNotification{std::string{notif_hdr->device_address}, device_msg}, consumed};
   }
   default:
     __builtin_unreachable();
@@ -64,13 +89,19 @@ SubscriberMessage from_buffer(const microloop::Buffer &buf)
 microloop::Buffer GreetingMessage::serialize() const
 {
   using internal::client_id_maxlen;
+  using internal::MsgHdr;
   using internal::POD_GreetingMessage;
 
-  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_GreetingMessage)};
+  microloop::Buffer buf{sizeof(MsgHdr) + sizeof(POD_GreetingMessage)};
   std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
 
-  data[0] = MessageType::GREETING;
-  memcpy(data + 1, client_id.c_str(), std::min(client_id_maxlen(), client_id.size()));
+  auto hdr = (MsgHdr *)data;
+  auto payload = (POD_GreetingMessage *)(data + sizeof(MsgHdr));
+
+  hdr->type = MessageType::GREETING;
+  hdr->msg_size = htons(sizeof(POD_GreetingMessage));
+
+  memcpy(payload->client_id, client_id.c_str(), std::min(client_id_maxlen(), client_id.size()));
 
   return buf;
 }
@@ -79,14 +110,20 @@ microloop::Buffer SubscribeRequest::serialize() const
 {
   using commons::internal::topic_maxlen;
   using internal::client_id_maxlen;
+  using internal::MsgHdr;
   using internal::POD_SubscribeRequest;
 
-  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_SubscribeRequest)};
+  microloop::Buffer buf{sizeof(MsgHdr) + sizeof(POD_SubscribeRequest)};
   std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
 
-  data[0] = MessageType::SUBSCRIBE;
-  memcpy(data + 1, topic.c_str(), std::min(topic_maxlen(), topic.size()));
-  data[buf.size() - 1] = store_forward;
+  auto hdr = (MsgHdr *)data;
+  auto payload = (POD_SubscribeRequest *)(data + sizeof(MsgHdr));
+
+  hdr->type = MessageType::SUBSCRIBE;
+  hdr->msg_size = htons(sizeof(POD_SubscribeRequest));
+
+  memcpy(payload->topic, topic.c_str(), std::min(sizeof(payload->topic), topic.size()));
+  payload->store_forward = store_forward;
 
   return buf;
 }
@@ -95,13 +132,19 @@ microloop::Buffer UnsubscribeRequest::serialize() const
 {
   using commons::internal::topic_maxlen;
   using internal::client_id_maxlen;
+  using internal::MsgHdr;
   using internal::POD_UnsubscribeRequest;
 
   microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_UnsubscribeRequest)};
   std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
 
-  data[0] = MessageType::UNSUBSCRIBE;
-  memcpy(data + 1, topic.c_str(), std::min(topic_maxlen(), topic.size()));
+  auto hdr = (MsgHdr *)data;
+  auto payload = (POD_UnsubscribeRequest *)(data + sizeof(MsgHdr));
+
+  hdr->type = MessageType::UNSUBSCRIBE;
+  hdr->msg_size = htons(sizeof(POD_UnsubscribeRequest));
+
+  memcpy(payload->topic, topic.c_str(), std::min(sizeof(payload->topic), topic.size()));
 
   return buf;
 }
@@ -109,36 +152,45 @@ microloop::Buffer UnsubscribeRequest::serialize() const
 microloop::Buffer ServerResponse::serialize() const
 {
   using commons::subscriber_messages::internal::notes_maxlen;
+  using internal::MsgHdr;
   using internal::POD_ServerResponse;
 
-  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_ServerResponse)};
+  microloop::Buffer buf{sizeof(MsgHdr) + sizeof(POD_ServerResponse)};
   std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
 
-  data[0] = MessageType::RESPONSE;
+  auto hdr = (MsgHdr *)data;
+  auto payload = (POD_ServerResponse *)(data + sizeof(MsgHdr));
 
-  auto server_response = reinterpret_cast<POD_ServerResponse *>(data + 1);
-  server_response->code = code;
-  std::memcpy(server_response->notes, notes.c_str(), std::min(notes.size(), notes_maxlen()));
+  hdr->type = MessageType::RESPONSE;
+  hdr->msg_size = htons(sizeof(POD_ServerResponse));
+
+  payload->code = code;
+  std::memcpy(payload->notes, notes.c_str(), std::min(notes.size(), notes_maxlen()));
 
   return buf;
 }
 
 microloop::Buffer DeviceNotification::serialize() const
 {
-  using internal::POD_DeviceNotification;
+  using internal::MsgHdr;
+  using internal::POD_DeviceNotification_Hdr;
 
   microloop::Buffer raw_dev_msg;
   std::visit([&](auto &&arg) { raw_dev_msg = arg.serialize(); }, original_message);
 
-  microloop::Buffer buf{sizeof(MessageType) + sizeof(POD_DeviceNotification)};
+  microloop::Buffer buf{sizeof(MsgHdr) + sizeof(POD_DeviceNotification_Hdr) + raw_dev_msg.size()};
   std::uint8_t *data = static_cast<std::uint8_t *>(buf.data());
 
-  data[0] = MessageType::DEVICE_MSG;
+  auto hdr = (MsgHdr *)data;
+  auto notif_hdr = (POD_DeviceNotification_Hdr *)(data + sizeof(MsgHdr));
+  auto notif_payload = data + sizeof(MsgHdr) + sizeof(POD_DeviceNotification_Hdr);
 
-  auto notification = reinterpret_cast<POD_DeviceNotification *>(data + 1);
-  std::memcpy(notification->device_address, device_address.c_str(),
+  hdr->type = MessageType::DEVICE_MSG;
+  hdr->msg_size = htons(sizeof(POD_DeviceNotification_Hdr) + raw_dev_msg.size());
+
+  std::memcpy(notif_hdr->device_address, device_address.c_str(),
       std::min(net_utils::AddressWrapper::str_maxlen, device_address.size()));
-  std::memcpy(notification->raw_message, raw_dev_msg.data(), raw_dev_msg.size());
+  std::memcpy(notif_payload, raw_dev_msg.data(), raw_dev_msg.size());
 
   return buf;
 }

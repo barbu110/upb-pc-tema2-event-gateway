@@ -109,6 +109,8 @@ using SubscriberMessage = std::variant<GreetingMessage,
  */
 bool is_valid_message_type(uint8_t value);
 
+bool can_parse_entire_msg(const microloop::Buffer &buf);
+
 /**
  * \brief Constructs a strongly-typed message structure given a buffer from an incoming network
  * packet.
@@ -117,7 +119,10 @@ bool is_valid_message_type(uint8_t value);
  * buffer. Providing a buffer containing an invalid message type will lead to undefined behavior.
  *
  * Users are required to perform checks using the `is_valid_message_type` function.
+ *
+ * \returns A pair made of the parsed message and how many bytes have been consumed from the given
+ * buffer.
  */
-SubscriberMessage from_buffer(const microloop::Buffer &buf);
+std::pair<SubscriberMessage, std::size_t> from_buffer(const microloop::Buffer &buf);
 
 }  // namespace commons::subscriber_messages

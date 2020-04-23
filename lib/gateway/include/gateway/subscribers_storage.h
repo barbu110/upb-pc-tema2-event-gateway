@@ -29,17 +29,23 @@ public:
 
   /**
    * \brief Retrieve a client with the identifier given by \p id.
+   * \param include_inactive Whether to return an existing subscriber even if it is not active (i.e.
+   * does not have an active TCP tunnel).
    * \returns An optional subscriber connection object. Note that if there is a connection with
-   * identifier \p id, but that connection does not have an active TCP tunnel, then it will not be
-   * returned.
+   * identifier \p id, but that connection does not have an active TCP tunnel, it will be returned
+   * only if \p include_inactive is `true`.
    */
-  SubscriberConnection *named(std::string id)
+  SubscriberConnection *named(std::string id, bool include_inactive = false)
   {
     for (auto &c : connections_)
     {
-      if (c.raw_conn && c.client_id == id)
+      if ((c.raw_conn || include_inactive) && c.client_id == id)
       {
         return &c;
+      }
+      else if (!c.raw_conn && !include_inactive)
+      {
+        return nullptr;
       }
     }
 

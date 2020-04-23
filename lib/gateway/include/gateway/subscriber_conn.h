@@ -1,6 +1,6 @@
 #pragma once
 
-#include "commons/device_messages.h"
+#include "commons/subscriber_messages.h"
 #include "microloop/net/tcp_server.h"
 
 #include <functional>
@@ -23,6 +23,13 @@ struct SubscriberConnection
 
   /* The client ID as provided by the Greeting message from a client upon connection. */
   std::string client_id;
+
+  std::queue<commons::subscriber_messages::DeviceNotification> pending_messages;
+
+  bool active() const
+  {
+    return raw_conn != nullptr;
+  }
 };
 
 }  // namespace gateway

@@ -35,6 +35,12 @@ static constexpr std::size_t notes_maxlen()
   return 64;
 }
 
+struct MsgHdr
+{
+  std::uint8_t type;
+  std::uint16_t msg_size;
+} __attribute__((packed));
+
 struct POD_GreetingMessage
 {
   char client_id[client_id_maxlen()];
@@ -57,10 +63,9 @@ struct POD_ServerResponse
   char notes[notes_maxlen()];
 };
 
-struct POD_DeviceNotification
+struct POD_DeviceNotification_Hdr
 {
   char device_address[net_utils::AddressWrapper::str_maxlen];
-  std::uint8_t raw_message[1551];
 };
 
 }  // namespace commons::subscriber_messages::internal

@@ -37,7 +37,6 @@ private:
   endpoint::SubscriberEndpoint subscriber_endpoint_;
 
   SubscribersStorage subscribers_;
-  std::queue<commons::device_messages::GenericDeviceMessage> pending_;
 };
 
 }  // namespace gateway

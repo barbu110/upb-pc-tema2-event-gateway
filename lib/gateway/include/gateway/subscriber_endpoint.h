@@ -3,7 +3,11 @@
 #include "commons/subscriber_messages.h"
 #include "gateway/subscriber_conn.h"
 #include "gateway/subscribers_storage.h"
+#include "microloop/kernel_exception.h"
 #include "microloop/net/tcp_server.h"
+
+#include <netinet/tcp.h>
+#include <sys/socket.h>
 
 namespace gateway::endpoint
 {
@@ -13,6 +17,11 @@ class SubscriberEndpoint
 public:
   SubscriberEndpoint(std::uint16_t port, SubscribersStorage &ss) : server_{port}, subscribers_{ss}
   {
+    if (int f = 1; setsockopt(server_.fd(), SOL_TCP, TCP_NODELAY, &f, sizeof(f)) == -1)
+    {
+      throw microloop::KernelException{errno};
+    }
+
     server_.set_connection_callback(&SubscriberEndpoint::on_tcp_conn, this);
     server_.set_data_callback(&SubscriberEndpoint::on_tcp_data, this);
   }

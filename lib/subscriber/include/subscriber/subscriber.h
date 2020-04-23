@@ -73,38 +73,46 @@ private:
 
     using namespace commons::subscriber_messages;
 
-    std::visit(
-        [&](auto &&msg) {
-          using T = std::decay_t<decltype(msg)>;
+    fragment_ += buf;
 
-          if constexpr (std::is_same_v<T, ServerResponse>)
-          {
-            using namespace commons::server_response;
+    while (can_parse_entire_msg(fragment_))
+    {
+      auto [message, consumed] = from_buffer(fragment_);
+      fragment_.remove_prefix(consumed);
 
-            if (msg.code == StatusCode::OK) {}
-            else if (msg.code == StatusCode::SUBSCRIBE_SUCCESSFUL)
+      std::visit(
+          [&](auto &&msg) {
+            using T = std::decay_t<decltype(msg)>;
+
+            if constexpr (std::is_same_v<T, ServerResponse>)
             {
-              auto topic = msg.notes;
-              std::cout << "response: subscribed to " << topic << "\n";
+              using namespace commons::server_response;
+
+              if (msg.code == StatusCode::OK) {}
+              else if (msg.code == StatusCode::SUBSCRIBE_SUCCESSFUL)
+              {
+                auto topic = msg.notes;
+                std::cout << "response: subscribed to " << topic << "\n";
+              }
+              else if (msg.code == StatusCode::UNSUBSCRIBE_SUCCESSFUL)
+              {
+                auto topic = msg.notes;
+                std::cout << "response: unsubscribed from " << topic << "\n";
+              }
+              else
+              {
+                std::cerr << "error response: " << status_str(msg.code) << "\n";
+              }
             }
-            else if (msg.code == StatusCode::UNSUBSCRIBE_SUCCESSFUL)
+            else if constexpr (std::is_same_v<T, DeviceNotification>)
             {
-              auto topic = msg.notes;
-              std::cout << "response: unsubscribed from " << topic << "\n";
+              std::cout << msg.device_address << " - ";
+              std::visit([](auto &&m) { std::cout << m.str(); }, msg.original_message);
+              std::cout << "\n";
             }
-            else
-            {
-              std::cerr << "error response: " << status_str(msg.code) << "\n";
-            }
-          }
-          else if constexpr (std::is_same_v<T, DeviceNotification>)
-          {
-            std::cout << msg.device_address << " - ";
-            std::visit([](auto &&m) { std::cout << m.str(); }, msg.original_message);
-            std::cout << "\n";
-          }
-        },
-        from_buffer(buf));
+          },
+          message);
+    }
   }
 
   void on_keyboard_input(const std::string &input)
@@ -175,6 +183,7 @@ private:
   std::string client_id_;
   net_utils::TcpClient client_;
   net_utils::AddressWrapper *conn_;  // Not managed by this class.
+  microloop::Buffer fragment_;  // Fragment of message to be parsed on next read iteration.
 };
 
 }  // namespace subscriber

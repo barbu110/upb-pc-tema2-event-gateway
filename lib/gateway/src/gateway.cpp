@@ -1,5 +1,6 @@
 #include "gateway/gateway.h"
 
+#include <cassert>  // TODO Remove once debugging phase is over.
 #include <variant>
 
 namespace gateway
@@ -19,16 +20,18 @@ void Gateway::on_device_input(const net_utils::AddressWrapper &source,
         for (auto it = subscriptions.cbegin(); it != subscriptions.cend(); ++it)
         {
           auto &[client_id, s] = *it;
-          auto client = subscribers_.named(client_id);
+          auto client = subscribers_.named(client_id, true);
 
-          if (!client)
-          {
-            // TODO Queue messages. This client must receive something at some point.
+          if (s.topic != msg.topic)
+          {-
             continue;
           }
 
-          if (s.topic != msg.topic)
+          if (!client->active())
           {
+            assert(s.store_forward);  // TODO Remove
+            client->pending_messages.push(notif);
+
             continue;
           }
 

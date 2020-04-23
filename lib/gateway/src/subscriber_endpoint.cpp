@@ -43,7 +43,7 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
     return;
   }
 
-  auto message = from_buffer(buf);
+  auto [message, consumed] = from_buffer(buf);
 
   if (is_pending_conn)
   {
@@ -112,6 +112,17 @@ void SubscriberEndpoint::on_client_greeting(SubscriberConnection &subscriber)
 {
   std::cout << "New client \"" << subscriber.client_id << "\" connected from "
             << subscriber.raw_conn->str(false) << ".\n";
+
+  while (!subscriber.pending_messages.empty())
+  {
+    auto &msg = subscriber.pending_messages.front();
+    if (!subscriber.raw_conn->send(msg.serialize()))
+    {
+      break;
+    }
+
+    subscriber.pending_messages.pop();
+  }
 }
 
 void SubscriberEndpoint::on_subscribe(SubscriberConnection &subscriber,
