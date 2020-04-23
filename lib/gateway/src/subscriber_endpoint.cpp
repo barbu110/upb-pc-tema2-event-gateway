@@ -28,8 +28,9 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
       on_disconnect(*subscribers_.with_fd(conn.fd()));
     }
 
-    server_.close_conn(conn);
     subscribers_.disconnect(conn);
+    server_.close_conn(conn);
+
     return;
   }
 
