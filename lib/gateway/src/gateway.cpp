@@ -23,7 +23,7 @@ void Gateway::on_device_input(const net_utils::AddressWrapper &source,
           auto client = subscribers_.named(client_id, true);
 
           if (s.topic != msg.topic)
-          {-
+          {
             continue;
           }
 

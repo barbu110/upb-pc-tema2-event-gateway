@@ -134,7 +134,7 @@ public:
     }
 
     auto conn_it = std::find_if(connections_.begin(), connections_.end(),
-        [&conn](auto &&c) { return c.raw_conn->fd() == conn.fd(); });
+        [&conn](auto &&c) { return c.raw_conn && c.raw_conn->fd() == conn.fd(); });
 
     if (conn_it == connections_.end())
     {
