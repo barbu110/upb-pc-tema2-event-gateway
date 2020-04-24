@@ -5,9 +5,24 @@
 #include <iostream>
 #include <signal.h>
 
-int main()
+int main(int argc, char **argv)
 {
-  gateway::Gateway gateway{8900};
+  if (argc < 2)
+  {
+    std::cerr << "usage: " << argv[0] << " port\n";
+    return -1;
+  }
+
+  int port = atoi(argv[1]);
+  if (port == 0)
+  {
+    std::cerr << "error: invalid port number\n";
+    return -1;
+  }
+
+  signal(SIGWINCH, SIG_IGN);
+
+  gateway::Gateway gateway{port};
 
   auto keyboard_input = new net_utils::KeyboardInput;
   keyboard_input->on_input([](const std::string &data) {

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <signal.h>
 
 int main(int argc, char **argv)
 {
@@ -23,6 +24,8 @@ int main(int argc, char **argv)
     std::cerr << "error: Client ID cannot contain whitespace.\n";
     return -1;
   }
+
+  signal(SIGWINCH, SIG_IGN);
 
   std::uint16_t port = atoi(argv[3]);
 
