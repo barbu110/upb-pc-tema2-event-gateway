@@ -93,7 +93,7 @@ The communication protocol involved when passing data around between Subscriber 
 Gateway (i.e. the SubscriberEndpoint component) is a little more complex than the one described in
 the previous section.  It is based on a request-response model.
 
-Every messages going on through the network starts with a message header:
+Every message going on through the network starts with a message header:
 
    +----------+------+
    | Field    | Size |
