@@ -170,6 +170,11 @@ public:
     connections_.erase(conn_it);
   }
 
+  /**
+   * \brief Remove the subscription of a client identified by \p client_id to the topic given by
+   * \p topic.
+   * \returns Whether a subscription matching the given criteria was found and removed or not.
+   */
   bool remove_subscription(std::string client_id, std::string topic)
   {
     auto it = std::find_if(subscriptions_.begin(), subscriptions_.end(), [&](auto &&p) {
@@ -211,6 +216,9 @@ public:
     return &val;
   }
 
+  /**
+   * \brief Get all the subscriptions of all registered subscribers.
+   */
   const auto &subscriptions() const
   {
     return subscriptions_;

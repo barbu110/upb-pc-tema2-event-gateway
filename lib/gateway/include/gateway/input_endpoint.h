@@ -11,6 +11,9 @@
 namespace gateway::endpoint
 {
 
+/**
+ * \brief Abstraction for the UDP endpoint exposed for clients to push messages into the system.
+ */
 class InputEndpoint
 {
 private:

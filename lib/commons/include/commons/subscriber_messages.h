@@ -109,6 +109,9 @@ using SubscriberMessage = std::variant<GreetingMessage,
  */
 bool is_valid_message_type(uint8_t value);
 
+/**
+ * \brief Checks whether a given buffer can be deserialized into an entire message.
+ */
 bool can_parse_entire_msg(const microloop::Buffer &buf);
 
 /**

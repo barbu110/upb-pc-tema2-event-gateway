@@ -162,6 +162,9 @@ using GenericDeviceMessage = std::variant<DeviceMessage<PayloadType::INT>,
     DeviceMessage<PayloadType::FLOAT>,
     DeviceMessage<PayloadType::STRING>>;
 
+/**
+ * \brief Retrieve a type-safe representation of a device message from the serialized buffer.
+ */
 GenericDeviceMessage from_buffer(const microloop::Buffer &buf);
 GenericDeviceMessage from_buffer(const void *data, std::size_t n);
 

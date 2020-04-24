@@ -11,8 +11,13 @@ namespace gateway
 
 struct Subscription
 {
+  /* The client identifier. */
   std::string client_id;
+
+  /* The topic identifier. */
   std::string topic;
+
+  /* Whether the Store&Forward feature is enabled for this subscription. */
   bool store_forward;
 };
 
@@ -24,6 +29,7 @@ struct SubscriberConnection
   /* The client ID as provided by the Greeting message from a client upon connection. */
   std::string client_id;
 
+  /* Messages to be sent upon susbcriber re-connection. */
   std::queue<commons::subscriber_messages::DeviceNotification> pending_messages;
 
   bool active() const

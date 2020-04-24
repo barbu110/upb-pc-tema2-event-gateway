@@ -12,6 +12,11 @@
 namespace net_utils
 {
 
+/**
+ * \brief Mechanism for handling keyboard input events.
+ *
+ * The event emitted by this event source is "input".
+ */
 class KeyboardInput : public microloop::EventSource, protected microloop::TypeHelper<std::string>
 {
 public:

@@ -19,6 +19,9 @@
 namespace gateway
 {
 
+/**
+ * \brief Bridge mechanism between the input endpoint and the device endpoint.
+ */
 class Gateway
 {
 public:
