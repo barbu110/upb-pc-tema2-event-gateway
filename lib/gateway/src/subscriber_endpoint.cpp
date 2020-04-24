@@ -150,6 +150,14 @@ void SubscriberEndpoint::on_unsubscribe(SubscriberConnection &subscriber,
   using namespace commons::subscriber_messages;
   using namespace commons::server_response;
 
+  if (!subscribers_.remove_subscription(subscriber.client_id, msg.topic))
+  {
+    ServerResponse error_response{StatusCode::SUBSCRIPTION_NOT_FOUND};
+    subscriber.raw_conn->send(error_response.serialize());
+
+    return;
+  }
+
   ServerResponse confirmation{StatusCode::UNSUBSCRIBE_SUCCESSFUL, msg.topic};
   subscriber.raw_conn->send(confirmation.serialize());
 }

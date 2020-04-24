@@ -170,6 +170,22 @@ public:
     connections_.erase(conn_it);
   }
 
+  bool remove_subscription(std::string client_id, std::string topic)
+  {
+    auto it = std::find_if(subscriptions_.begin(), subscriptions_.end(), [&](auto &&p) {
+      auto &[k, s] = p;
+      return s.topic == topic && k == client_id;
+    });
+
+    if (it == subscriptions_.end())
+    {
+      return false;
+    }
+
+    subscriptions_.erase(it);
+    return true;
+  }
+
   /**
    * \brief Add a subscription to the client identified by \p client_id.
    * \param client_id The client that is subject to the subscribe request.
@@ -195,7 +211,12 @@ public:
     return &val;
   }
 
-  auto &subscriptions() const
+  const auto &subscriptions() const
+  {
+    return subscriptions_;
+  }
+
+  auto &subscriptions()
   {
     return subscriptions_;
   }
