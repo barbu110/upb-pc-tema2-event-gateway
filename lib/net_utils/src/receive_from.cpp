@@ -20,10 +20,6 @@ bool AddressWrapper::send(const microloop::Buffer &buf) const
         server_sock_, data + total_sent, buf.size() - total_sent, 0, (sockaddr *)&addr_, addrlen_);
     if (nsent == -1)
     {
-      /*
-       * TODO Process the error correctly.
-       */
-
       return false;
     }
 

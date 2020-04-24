@@ -66,7 +66,6 @@ private:
   {
     if (buf.empty())
     {
-      // TODO Print goodbye message
       kill(getpid(), SIGINT);
       return;
     }

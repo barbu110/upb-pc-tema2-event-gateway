@@ -58,7 +58,7 @@ void SubscriberEndpoint::on_tcp_data(microloop::net::TcpServer::PeerConnection &
       return;
     }
 
-    auto greeting = std::get<GreetingMessage>(message);  // TODO Can this be an lvalue ref?
+    auto greeting = std::get<GreetingMessage>(message);
 
     auto subscriber_conn = subscribers_.attach_client_id(conn, greeting.client_id);
     if (!subscriber_conn)
