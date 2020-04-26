@@ -26,6 +26,8 @@ versions used in the development environment are the ones listed in the table be
 Note: a Docker image is provided to easily build the application.  Also, fully static linking is
 not supported due to the use of the "pthreads" library.
 
+More information on executing the containerized application in section "Running the System".
+
 
 Architecture
 
@@ -151,3 +153,65 @@ errors when allocating very large blocks of contiguous memory (as "std::vector" 
 However, storing extremely large amounts of messages can become a problem.  A solution to this would
 be to use a memory-mapped file [mmap].  This would even preserve messages accross numerous
 server "deaths".
+
+
+Running the System
+
+For ease of use, the system can be containerized.  Due to the need to keep the source code private
+at all times, building the Docker image is required.  However, the following instructions should
+suffice.  Throughout the following Shell samples, it is assumed the commands are executed from
+within the root directory of the project.
+
+Building the container:
+
+   sudo docker build -t gateway_run .
+
+The container is based on Arch Linux.  Building it may take up to 5 minutes, depending on the
+network speed.
+
+The container can run both the Gateway and Subscribers with or without Valgrind and allows keyboard
+input.
+
+Running the Gateway:
+
+   # without Valgrind
+   sudo docker run -it gateway_run gateway_server <port>
+
+   # with Valgrind
+   sudo docker run --env use_valgrind=yes gateway_server <port>
+
+The container will print its IP address within the bridge network. Sample output:
+
+   Host IP: 172.17.0.2
+
+   Running Gateway...
+   ==8== Memcheck, a memory error detector
+   ==8== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+   ==8== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+   ==8== Command: bazel-bin/main/gateway_server 8500
+   ==8==
+
+Before running one or more Subscriber clients, please take note of the printed IP address and DO NOT
+close the Gateway Docker container.  To run a Subscriber, the following command must be issued:
+
+   # without Valgrind
+   sudo docker run -it gateway_run subscriber <client_id> <server_ip> <server_port>
+
+   # with Valgrind
+   sudo docker run --env use_valgrind=yes -it gateway_run subscriber <client_id> <server_ip> <port>
+
+Upon successful run, the output should be similar to the following:
+
+   Host IP: 172.17.0.3
+
+   Running Subscriber...
+   ==8== Memcheck, a memory error detector
+   ==8== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+   ==8== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+   ==8== Command: bazel-bin/main/subscriber victor 172.17.0.2 8500
+   ==8==
+   Connected to 172.17.0.2:8500
+
+The application is able to handle signals, so shutting down either the server or one of the
+Subscribers can be done either by pressing CTRL + C (to emit a SIGINT signal), or by typing "exit"
+from keyboard.

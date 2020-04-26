@@ -1,0 +1,7 @@
+.clang-format
+.gdbinit
+.gitignore
+.travis.yml
+Dockerfile
+readme.txt
+bazel-*
