@@ -5,7 +5,8 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
   name = "micro",
   remote = "https://github.com/barbu110/micro.git",
-  branch = "master",
+  commit = "897feb899c13d3c4cc36dd5acdacd4f97bc3aa6d",
+  shallow_since = "1587636620 +0300",
 )
 
 git_repository(
